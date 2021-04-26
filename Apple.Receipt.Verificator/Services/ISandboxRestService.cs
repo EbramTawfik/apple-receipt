@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Apple.Receipt.Verificator.Services
 {
-    internal interface IRestService
+    internal interface ISandboxRestService
     {
         [Post("")]
         Task<IAPVerificationResponse?> ValidateAppleReceiptAsync(IAPVerificationRequest request);

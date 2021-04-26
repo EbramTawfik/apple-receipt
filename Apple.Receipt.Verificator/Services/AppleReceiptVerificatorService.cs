@@ -10,21 +10,24 @@ namespace Apple.Receipt.Verificator.Services
 {
     internal class AppleReceiptVerificatorService : IAppleReceiptVerificatorService
     {
-        private readonly IRestService _restService;
+        private readonly IProductionRestService _productionRestService;
+        private readonly ISandboxRestService _sandboxRestService;
         private readonly ILogger _logger;
         private readonly IAppleReceiptParserService _receiptParserService;
         private readonly IOptionsSnapshot<AppleReceiptVerificationSettings> _settings;
         private readonly IAppleReceiptCustomVerificatorService? _customValidation;
 
         public AppleReceiptVerificatorService(
-            IRestService restService,
+            IProductionRestService productionRestService,
+            ISandboxRestService sandboxRestService,
             ILogger<AppleReceiptVerificatorService> logger,
             IAppleReceiptParserService receiptParserService,
             IOptionsSnapshot<AppleReceiptVerificationSettings> settings,
             IAppleReceiptCustomVerificatorService? customValidation = null
         )
         {
-            _restService = restService;
+            _productionRestService = productionRestService;
+            _sandboxRestService = sandboxRestService;
             _logger = logger;
             _receiptParserService = receiptParserService;
             _settings = settings;
@@ -83,7 +86,7 @@ namespace Apple.Receipt.Verificator.Services
             {
                 _logger.LogDebug("Start receipt verification in IAP...");
                 var request = new IAPVerificationRequest(receiptData, _settings.Value.VerifyReceiptSharedSecret);
-                IAPVerificationResponse iapVerificationResult = await _restService.ValidateAppleReceiptAsync(request).ConfigureAwait(false);
+                IAPVerificationResponse iapVerificationResult = await _productionRestService.ValidateAppleReceiptAsync(request).ConfigureAwait(false);
 
                 if (iapVerificationResult == null)
                 {
@@ -94,6 +97,10 @@ namespace Apple.Receipt.Verificator.Services
                 }
 
                 var iapStatus = iapVerificationResult.StatusCode;
+                if (iapStatus == IAPVerificationResponseStatus.TestReceiptOnProd)
+                {
+                    iapVerificationResult = await _sandboxRestService.ValidateAppleReceiptAsync(request).ConfigureAwait(false);
+                }
                 // 1.If status <> 0 - failed
                 if (iapStatus != IAPVerificationResponseStatus.Ok)
                 {

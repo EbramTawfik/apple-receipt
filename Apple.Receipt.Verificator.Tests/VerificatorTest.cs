@@ -27,7 +27,6 @@ namespace Apple.Receipt.Verificator.Tests
             services.RegisterAppleReceiptVerificator(x =>
             {
                 x.VerifyReceiptSharedSecret = "Your Shared Key";
-                x.VerificationType = AppleReceiptVerificationType.Sandbox;
                 x.AllowedBundleIds = new[] { "Your.App.Id", "com.mbaasy.ios.demo"};
             });
 

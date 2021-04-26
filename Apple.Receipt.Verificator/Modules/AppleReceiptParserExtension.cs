@@ -20,11 +20,15 @@ namespace Apple.Receipt.Verificator.Modules
                 services.Configure(configureOptions);
             }
 
-            services.AddRefitClient<IRestService>()
-                .ConfigureHttpClient((serviceProvider, httpClient) 
+            services.AddRefitClient<IProductionRestService>()
+                .ConfigureHttpClient((serviceProvider, httpClient)
                     => httpClient.BaseAddress = new Uri(
-                        serviceProvider.GetRequiredService<IOptions<AppleReceiptVerificationSettings>>()
-                            .Value.VerifyUrl));
+                   serviceProvider.GetRequiredService<IOptions<AppleReceiptVerificationSettings>>().Value.ProductionUrl));
+
+            services.AddRefitClient<ISandboxRestService>()
+                .ConfigureHttpClient((serviceProvider, httpClient)
+                    => httpClient.BaseAddress = new Uri(
+                   serviceProvider.GetRequiredService<IOptions<AppleReceiptVerificationSettings>>().Value.SandboxUrl));
 
             services.TryAddScoped<IAppleReceiptVerificatorService, AppleReceiptVerificatorService>();
 
